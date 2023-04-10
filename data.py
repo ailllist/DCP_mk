@@ -24,14 +24,36 @@ def load_data(partition):
     return all_data, all_label
 
 class ModelNet40(Dataset):
-    def __init__(self, partition="train", num_points=1024, num_of_object=-1, batch_size=1):
+    def __init__(self, partition="train", num_points=1024, num_of_object=-1, batch_size=1, factor=4):
         self.data, self.label = load_data(partition)
         self.num_points = num_points
         self.data = self.data[:num_of_object, :self.num_points, :]
         self.label = self.label[:num_of_object, :]
+        self.factor = factor
 
     def __getitem__(self, index):
+        pointcloud = self.data[index][:self.num_points]
+        anglex = np.random.uniform() * np.pi / self.factor  # dataset 생성을 위한 x
+        angley = np.random.uniform() * np.pi / self.factor  # dataset 생성을 위한 y
+        anglez = np.random.uniform() * np.pi / self.factor  # dataset 생성을 위한 z
+
+        cosx = np.cos(anglex)  # 변환 행렬 만들기
+        cosy = np.cos(angley)  # 변환 행렬 만들기
+        cosz = np.cos(anglez)  # 변환 행렬 만들기
+        sinx = np.sin(anglex)  # 변환 행렬 만들기
+        siny = np.sin(angley)  # 변환 행렬 만들기
+        sinz = np.sin(anglez)  # 변환 행렬 만들기
+        Rx = np.array([[1, 0, 0],
+                      [0, cosx, -sinx],
+                      [0, sinx, cosx]])
+
         return self.data[index], self.label[index]
 
     def __len__(self):
         return self.data.shape[0]  # object의 갯수
+
+if __name__ == "__main__":
+    train_data = ModelNet40("train")
+    test_data = ModelNet40("test")
+
+    print(len(train_data))
