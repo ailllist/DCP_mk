@@ -2,6 +2,7 @@ import os
 import glob
 import h5py
 import numpy as np
+from scipy.spatial.transform import Rotation
 from torch.utils.data import Dataset
 
 def load_data(partition):
@@ -45,9 +46,35 @@ class ModelNet40(Dataset):
         sinz = np.sin(anglez)  # 변환 행렬 만들기
         Rx = np.array([[1, 0, 0],
                       [0, cosx, -sinx],
-                      [0, sinx, cosx]])
+                      [0, sinx, cosx]])  # x축 변환 행렬
+        Ry = np.array([[cosy, 0, siny],
+                      [0, 1, 0],
+                      [-siny, 0, cosy]])  # y축 변환 행렬
+        Rz = np.array([[cosz, -sinz, 0],
+                       [sinz, cosz, 0],
+                       [0, 0, 1]])  # z축 변환 행렬
 
-        return self.data[index], self.label[index]
+        R_ab = Rx.dot(Ry).dot(Rz)  # 회전 변환 행렬
+        R_ba = R_ab.T
+
+        translation_ab = np.array([np.random.uniform(-0.5, 0.5), np.random.uniform(-0.5, 0.5),
+                                   np.random.uniform(-0.5, 0.5)])
+        translation_ba = -R_ba.dot(translation_ab)
+
+        pointcloud1 = pointcloud.T
+
+        rotation_ab = Rotation.from_euler("zyx", [anglez, angley, anglex])  # extrinsic rotation
+        pointcloud2 = rotation_ab.apply(pointcloud1.T).T + np.expand_dims(translation_ab, axis=1)
+
+        euler_ab = np.asarray([anglez, angley, anglex])
+        euler_ba = -euler_ab[::-1]
+
+        pointcloud1 = np.random.permutation(pointcloud1.T).T
+        pointcloud2 = np.random.permutation(pointcloud2.T).T
+
+        return pointcloud1.astype("float32"), pointcloud2.astype("float32"), R_ab.astype("float32"), \
+                translation_ab.astype("float32"), R_ba.astype("float32"), translation_ba.astype("float32"), \
+                euler_ba.astype("float32"), euler_ba.astype("float32")
 
     def __len__(self):
         return self.data.shape[0]  # object의 갯수
@@ -56,4 +83,4 @@ if __name__ == "__main__":
     train_data = ModelNet40("train")
     test_data = ModelNet40("test")
 
-    print(len(train_data))
+    print(train_data[0])
