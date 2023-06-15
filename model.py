@@ -135,6 +135,15 @@ class DCP(nn.Module):
         super().__init__()
         self.emb_net = DGCNN(emb_dim=emb_dims)
 
+    def forward(self, *input):
+        src = input[0]
+        tgt = input[1]
+        src_emb = self.emb_net(src)
+        tgt_emb = self.emb_net(tgt)
+        print("src : ", src.shape)
+        print("embedded src : ", src_emb.shape)
+        print("tgt : ", tgt.shape)
+        print("embedded tgt : ", tgt_emb.shape)
 
     def forward(self, *input):
         src = input[0]
