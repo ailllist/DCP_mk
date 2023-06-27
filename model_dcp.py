@@ -13,8 +13,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-from util import quat2mat
-
+# from util import quat2mat
+from torch.utils.data import DataLoader
 
 # Part of the code is referred from: http://nlp.seas.harvard.edu/2018/04/03/attention.html#positional-encoding
 
@@ -337,7 +337,8 @@ class MLPHead(nn.Module):
         rotation = self.proj_rot(embedding)
         rotation = rotation / torch.norm(rotation, p=2, dim=1, keepdim=True)
         translation = self.proj_trans(embedding)
-        return quat2mat(rotation), translation
+        return rotation, translation
+        # return quat2mat(rotation), translation
 
 
 class Identity(nn.Module):

@@ -302,6 +302,49 @@ class Transformer(nn.Module):
         src_embedding = self.model(tgt, src, None, None).transpose(2, 1).contiguous()
         return src_embedding, tgt_embedding
 
+class SVDHead(nn.Module):
+    def __init__(self, emb_dims):
+        super(SVDHead, self).__init__()
+        self.emb_dims = emb_dims
+        self.reflect = nn.Parameter(torch.eye(3), requires_grad=False)
+        self.reflect[2, 2] = -1  # 이 Transformation은 [x, y, z] => [x, y, -z]인데, 왜 z축 반전을 할까?
+
+    def forward(self, *input):
+        src_embedding = input[0]
+        tgt_embedding = input[1]
+        src = input[2]
+        tgt = input[3]
+        batch_size = src.size(0)
+
+        d_k = src_embedding.size(1)  # 512
+        scores = torch.matmul(src_embedding.transpose(2, 1).contiguous(), tgt_embedding) / math.sqrt(d_k)  # 2, 1024, 1024
+        # scaled-dot attention, m(x_i, Y)
+        scores = torch.softmax(scores, dim=2)  #
+
+        src_corr = torch.matmul(tgt, scores.transpose(2, 1).contiguous())  # att score를 토대로 tgt에서 가장 유사도가 높은 point 추출.
+        # Attention. Q : src_embedding, K : tgt_embedding, V : tgt
+        src_centered = src - src.mean(dim=2, keepdim=True)  # local coordinate 로 변경
+        src_corr_centered = src_corr - src_corr.mean(dim=2, keepdim=True)  # soft_pointer (tgt_point와 유사)의 local
+
+        H = torch.matmul(src_centered, src_corr_centered.transpose(2, 1).contiguous())  # cross-covariance matrix
+
+        U, S, V = [], [], []
+        R = []
+
+        for i in range(src.size(0)):  # batch 풀기 (batch-wise 연산)
+            u, s, v = torch.svd(H[i])
+            r = torch.matmul(v, u.transpose(1, 0).contiguous())
+            r_det = torch.det(r)
+            if r_det < 0:  #TODO 이게 무슨 경우일까? determinant가 0보다 작다면, 올바른 회전 변환이 아니라고 한다.
+                u, s, v = torch.svd(H[i])
+                v = torch.matmul(v, self.reflect)
+                r = torch.matmul(v, u.transpose(1, 0).contiguous())
+            R.append(r)
+
+        R = torch.stack(R, dim=0)
+
+        t = torch.matmul(-R, src.mean(dim=2, keepdim=True)) + src_corr.mean(dim=2, keepdim=True)
+        return R, t.view(batch_size, 3)
 
 class DCP(nn.Module):
 
@@ -309,30 +352,29 @@ class DCP(nn.Module):
         super().__init__()
         self.emb_net = DGCNN(emb_dim=emb_dims)
         self.pointer = Transformer(emb_dims, 1, 4, 0.0, 1024)
+        self.head = SVDHead(emb_dims)
 
     def forward(self, *input):
         src = input[0]
         tgt = input[1]
         src_emb = self.emb_net(src)
         tgt_emb = self.emb_net(tgt)
-        print("src : ", src.shape)
-        print("embedded src : ", src_emb.shape)
-        print("tgt : ", tgt.shape)
-        print("embedded tgt : ", tgt_emb.shape)
 
         src_emb_p, tgt_emb_p = self.pointer(src_emb, src_emb, src_emb)
 
-        print("src_point : ", src_emb_p.shape)
-        print("tgt_point : ", tgt_emb_p.shape)
-
-        src_emb += src_emb_p
+        src_emb += src_emb_p  # 2, 512, 1024
         tgt_emb += tgt_emb_p
+
+        rotation_ab, translation_ab = self.head(src_emb, tgt_emb, src, tgt)
+        rotation_ba = rotation_ab.transpose(2, 1).contiguous()  # 직교행렬이니까
+        translation_ba = -torch.matmul(rotation_ba, translation_ab.unsqueeze(2)).squeeze(2)
+
+        return rotation_ab, translation_ab, rotation_ba, translation_ba
 
 
 if __name__ == "__main__":
 
     torch.cuda.empty_cache()
-    "asdf"
     train_loader = DataLoader(ModelNet40("train"), batch_size=2)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -345,5 +387,9 @@ if __name__ == "__main__":
         src = src.to(device)
         tgt = tgt.to(device)
 
-        model(src, tgt)
+        r1, t1, r2, t2 = model(src, tgt)
+
+        print(r1, t1)
+        print(rotation_ab, translation_ab)
         break
+
