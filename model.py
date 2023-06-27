@@ -332,6 +332,7 @@ class DCP(nn.Module):
 if __name__ == "__main__":
 
     torch.cuda.empty_cache()
+    "asdf"
     train_loader = DataLoader(ModelNet40("train"), batch_size=2)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
