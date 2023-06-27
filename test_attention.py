@@ -8,6 +8,8 @@ from data import ModelNet40
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import math
+import matplotlib.pyplot as plt
+import numpy as np
 
 def clones(module, N):
     return nn.ModuleList([copy.deepcopy(module) for _ in range(N)]) # 단순히 module을 N번 반복한다.
@@ -60,6 +62,7 @@ def get_graph_feature(x, k=20, idx=None):
     return feature
 
 class DGCNN(nn.Module):
+
     def __init__(self, k=20, output=40, emb_dim=1024):
         super(DGCNN, self).__init__()
         self.k = k
@@ -134,6 +137,7 @@ class PointNet(nn.Module):
         return x
 
 class LayerNorm(nn.Module):
+
     def __init__(self, features, eps=1e-6):
         super(LayerNorm, self).__init__()
         self.a_2 = nn.Parameter(torch.ones(features))
@@ -146,14 +150,16 @@ class LayerNorm(nn.Module):
         return  self.a_2 * (x - mean) / (std + self.eps) + self.b_2
 
 class SublayerConnection(nn.Module):
+
     def __init__(self, size, dropout=None):
         super(SublayerConnection, self).__init__()
         self.norm = LayerNorm(size)
 
     def forward(self, x, sublayer):  # Residual Connection
-        return x + sublayer(self.norm(x))
+        return x + sublayer(self.norm(x))[0], sublayer(self.norm(x))[1]
 
 class PositionwiseFeedForward(nn.Module):
+
     def __init__(self, d_model, d_ff, dropout=0.1):
         super(PositionwiseFeedForward, self).__init__()
         self.w_1 = nn.Linear(d_model, d_ff)
@@ -165,6 +171,7 @@ class PositionwiseFeedForward(nn.Module):
         return self.w_2(F.relu(self.norm(self.w_1(x)).transpose(2, 1).contiguous()).transpose(2, 1).contiguous())
 
 class EncoderLayer(nn.Module):
+
     def __init__(self, size, self_attn, feed_forward, dropout):
 
         super(EncoderLayer, self).__init__()
@@ -175,10 +182,17 @@ class EncoderLayer(nn.Module):
         self.size = size
 
     def forward(self, x, mask):
-        x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, mask))
-        return self.sublayer[1](x, self.feed_forward)
+        print("----x : ", x.shape)
+        x, attn = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, mask))
+
+        pre_show = attn.cpu()
+        pre_show = pre_show.detach().numpy()
+        plt.imshow(pre_show[0][0])
+        plt.show()
+        return self.sublayer[1](x, self.feed_forward)[0]
 
 class Encoder(nn.Module):
+
     def __init__(self, layer: "EncoderLayer", N):
         """
 
@@ -206,9 +220,15 @@ class DecoderLayer(nn.Module):
 
     def forward(self, x, memory, src_mask, tgt_mask):
         m = memory
-        x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, tgt_mask))
-        x = self.sublayer[1](x, lambda x: self.src_attn(x, m, m, src_mask))
-        return self.sublayer[2](x, self.feed_forward)
+        x, attn = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, tgt_mask))
+        x, attn = self.sublayer[1](x, lambda x: self.src_attn(x, m, m, src_mask))
+        # print(x.shape)
+        # pre_show = attn.cpu()
+        # pre_show = pre_show.detach().numpy()
+        # plt.imshow(pre_show[0][0])
+        # plt.show()
+        return self.sublayer[2](x, self.feed_forward)[0]
+
 
 class Decoder(nn.Module):
     def __init__(self, layer, N):
@@ -238,7 +258,8 @@ class EncoderDecoder(nn.Module):
         return self.decode(self.encode(src, src_mask), src_mask, tgt, tgt_mask)
 
     def encode(self, src, src_mask):
-        return self.encoder(self.src_embed(src), src_mask)
+        x = self.encoder(self.src_embed(src), src_mask)
+        return x
 
     def decode(self, memory, src_mask, tgt, tgt_mask):
         return self.generator(self.decoder(self.tgt_embed(tgt), memory, src_mask, tgt_mask))
@@ -260,11 +281,13 @@ class MultiHeadAttention(nn.Module):
         # 앞의 3개는 Linear Projection, 뒤 1개는 Universal Projection
         self.attn = None
         self.dropout = None
+
     def forward(self, quary, key, value, mask=None):
         if mask is not None:
             mask = mask.unsqueeze(1)
         nbatches = quary.size(0)
-        # (2, 512, 1024) -> (2, 4, 256, 512)
+
+        # (2, 512, 1024) -> (2, 4, 1024, 128)
         quary, key, value = \
             [l(x).view(nbatches, -1, self.h, self.d_k).transpose(1, 2).contiguous()
              for l, x in zip(self.linears, (quary, key, value))]
@@ -272,11 +295,14 @@ class MultiHeadAttention(nn.Module):
         x, self.attn = Attention(quary, key, value)
 
         x = x.transpose(1, 2).contiguous().view(nbatches, -1, self.h*self.d_k)  # 2, 1024, 512
-        return self.linears[-1](x)
+        # (batch_size, # of point, feature dims)
+        print("----------------x.shape : ", x.shape)
+        return self.linears[-1](x), self.attn
 
 
 
 class Transformer(nn.Module):
+
     def __init__(self, emb_dims, n_blocks, n_heads, dropout, ff_dims):
         super(Transformer, self).__init__()
         self.emb_dims = emb_dims
@@ -320,6 +346,11 @@ class DCP(nn.Module):
         print("tgt : ", tgt.shape)
         print("embedded tgt : ", tgt_emb.shape)
 
+        # ATT = Attention(src_emb, src_emb, src_emb)
+        # pre_show = ATT[1].cpu()
+        # pre_show = pre_show.detach().numpy()
+        # plt.imshow(pre_show[0])
+        # plt.show()
         src_emb_p, tgt_emb_p = self.pointer(src_emb, src_emb, src_emb)
 
         print("src_point : ", src_emb_p.shape)
@@ -331,7 +362,6 @@ class DCP(nn.Module):
 
 if __name__ == "__main__":
 
-    torch.cuda.is_available()
     torch.cuda.empty_cache()
     train_loader = DataLoader(ModelNet40("train"), batch_size=2)
 
