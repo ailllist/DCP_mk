@@ -216,11 +216,11 @@ class PointNet(nn.Module):
         self.bn5 = nn.BatchNorm1d(emb_dims)
 
     def forward(self, x):
-        x = F.relu(self.bn1(self.conv1(x)), inplace=False)
-        x = F.relu(self.bn2(self.conv2(x)), inplace=False)
-        x = F.relu(self.bn3(self.conv3(x)), inplace=False)
-        x = F.relu(self.bn4(self.conv4(x)), inplace=False)
-        x = F.relu(self.bn5(self.conv5(x)), inplace=False)
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.bn3(self.conv3(x)))
+        x = F.relu(self.bn4(self.conv4(x)))
+        x = F.relu(self.bn5(self.conv5(x)))
 
         return x
 """
@@ -290,21 +290,21 @@ class DGCNN(nn.Module):
     def forward(self, x):
         batch_size, num_dims, num_points = x.size()
         x = get_graph_feature(x)
-        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn1(self.conv1(x)), inplace=False)
         x1 = x.max(dim=-1, keepdim=True)[0]
 
-        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.bn2(self.conv2(x)), inplace=False)
         x2 = x.max(dim=-1, keepdim=True)[0]
 
-        x = F.relu(self.bn3(self.conv3(x)))
+        x = F.relu(self.bn3(self.conv3(x)), inplace=False)
         x3 = x.max(dim=-1, keepdim=True)[0]
 
-        x = F.relu(self.bn4(self.conv4(x)))
+        x = F.relu(self.bn4(self.conv4(x)), inplace=False)
         x4 = x.max(dim=-1, keepdim=True)[0]
 
         x = torch.cat((x1, x2, x3, x4), dim=1)
 
-        x = F.relu(self.bn5(self.conv5(x))).view(batch_size, -1, num_points)
+        x = F.relu(self.bn5(self.conv5(x)), inplace=False).view(batch_size, -1, num_points)
         return x
 
 class Transformer(nn.Module):

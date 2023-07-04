@@ -191,7 +191,8 @@ def train_one_epoch(net, train_loader, opt):
 def train(net, train_loader, test_loader):
     opt = optim.Adam(net.parameters(), lr=0.001, weight_decay=1e-4)
     scheduler = MultiStepLR(opt, milestones=[75, 150, 200], gamma=0.1) # TODO 다시 보기
-
+    f = open("run.csv", "w")
+    f.close()
     # --------------------init value--------------------------
     best_test_loss = np.inf
     best_test_cycle_loss = np.inf
@@ -269,7 +270,9 @@ def train(net, train_loader, test_loader):
         test_t_mse_ba = np.mean((test_translations_ba - test_translations_ba_pred) ** 2)
         test_t_rmse_ba = np.sqrt(test_t_mse_ba)
         test_t_mae_ba = np.mean(np.abs(test_translations_ba - test_translations_ba_pred))
-
+        with open("run_1.csv", "a") as f:
+            f.write(f"{test_loss},{test_mse_ba},{test_mse_ab},{test_mae_ab},{test_mae_ba},{test_rmse_ab},{test_rmse_ba}\n")
+            
         if best_test_loss >= test_loss:
             best_test_loss = test_loss
 
