@@ -13,7 +13,11 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import MultiStepLR
 from data import ModelNet40
 from model import DCP
+<<<<<<< HEAD
 from util import transform_point_cloud, npmat2euler
+=======
+from util_dcp import transform_point_cloud, npmat2euler
+>>>>>>> main
 import numpy as np
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
