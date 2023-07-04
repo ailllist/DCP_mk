@@ -272,7 +272,7 @@ def train(net, train_loader, test_loader):
         test_t_mae_ba = np.mean(np.abs(test_translations_ba - test_translations_ba_pred))
         with open("run_1.csv", "a") as f:
             f.write(f"{test_loss},{test_mse_ba},{test_mse_ab},{test_mae_ab},{test_mae_ba},{test_rmse_ab},{test_rmse_ba}\n")
-            
+
         if best_test_loss >= test_loss:
             best_test_loss = test_loss
 

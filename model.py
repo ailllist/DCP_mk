@@ -223,7 +223,7 @@ class PointNet(nn.Module):
         x = F.relu(self.bn5(self.conv5(x)))
 
         return x
-"""
+
 class DGCNN(nn.Module):
     def __init__(self, k=20, output=40, emb_dim=1024):
         super(DGCNN, self).__init__()
@@ -271,8 +271,8 @@ class DGCNN(nn.Module):
         x = self.conv5(x)
 
         return torch.squeeze(x)
-"""
 
+"""
 class DGCNN(nn.Module):
     def __init__(self, emb_dims=512):
         super(DGCNN, self).__init__()
@@ -306,6 +306,7 @@ class DGCNN(nn.Module):
 
         x = F.relu(self.bn5(self.conv5(x)), inplace=False).view(batch_size, -1, num_points)
         return x
+"""
 
 class Transformer(nn.Module):
     def __init__(self, emb_dims, n_blocks, n_heads, dropout, ff_dims):
