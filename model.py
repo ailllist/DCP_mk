@@ -216,11 +216,11 @@ class PointNet(nn.Module):
         self.bn5 = nn.BatchNorm1d(emb_dims)
 
     def forward(self, x):
-        x = F.relu(self.bn1(self.conv1(x)))
-        x = F.relu(self.bn2(self.conv2(x)))
-        x = F.relu(self.bn3(self.conv3(x)))
-        x = F.relu(self.bn4(self.conv4(x)))
-        x = F.relu(self.bn5(self.conv5(x)))
+        x = F.relu(self.bn1(self.conv1(x)), inplace=False)
+        x = F.relu(self.bn2(self.conv2(x)), inplace=False)
+        x = F.relu(self.bn3(self.conv3(x)), inplace=False)
+        x = F.relu(self.bn4(self.conv4(x)), inplace=False)
+        x = F.relu(self.bn5(self.conv5(x)), inplace=False)
 
         return x
 """
