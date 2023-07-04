@@ -312,7 +312,7 @@ if __name__ == "__main__":
     np.random.seed(SEED)
 
     train_loader = DataLoader(ModelNet40("train"),
-                              shuffle=True, batch_size=batch_size)
+                              shuffle=False, batch_size=batch_size)
     test_loader = DataLoader(ModelNet40("test"),
                              shuffle=False, batch_size=batch_size)
 

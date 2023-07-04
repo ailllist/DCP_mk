@@ -28,8 +28,8 @@ class ModelNet40(Dataset):
     def __init__(self, partition="train", num_points=1024, num_of_object=-1, batch_size=1, factor=4):
         self.data, self.label = load_data(partition)
         self.num_points = num_points
-        self.data = self.data[:num_of_object, :self.num_points, :]
-        self.label = self.label[:num_of_object, :]
+        self.data = self.data[:, :self.num_points, :]
+        self.label = self.label[:, :]
         self.factor = factor
 
     def __getitem__(self, index):
@@ -82,5 +82,8 @@ class ModelNet40(Dataset):
 if __name__ == "__main__":
     train_data = ModelNet40("train")
     test_data = ModelNet40("test")
-
+    SEED = 1234
+    batch_size = 8
+    np.random.seed(SEED)
     print(train_data[0])
+    breakpoint()

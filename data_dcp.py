@@ -129,6 +129,7 @@ class ModelNet40(Dataset):
 if __name__ == '__main__':
     train = ModelNet40(1024)
     test = ModelNet40(1024, 'test')
-    for data in train:
-        print(len(data))
-        break
+    SEED = 1234
+    batch_size = 8
+    np.random.seed(SEED)
+    print(train[0])
