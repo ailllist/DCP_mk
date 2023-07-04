@@ -395,7 +395,6 @@ class DCP(nn.Module):
 
         src_emb_p, tgt_emb_p = self.pointer(src_emb, src_emb, src_emb)
         # print("res : ", src_emb_p[0][0][100])  # tensor(1.4030, device='cuda:0', grad_fn=<SelectBackward0>)
-        breakpoint()
         src_emb += src_emb_p  # 2, 512, 1024
         tgt_emb += tgt_emb_p
 
