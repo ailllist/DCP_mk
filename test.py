@@ -1,6 +1,8 @@
 import torch
 import numpy as np
 
-arr1 = np.array([[[1,2,3],[4,5,6],[7,8,9]], [[1,2,3],[4,5,6],[7,8,9]]], np.float32)
-tensor1 = torch.tensor(arr1)
-print(torch.mean(tensor1, dim=[0]))
+a = torch.nn.LeakyReLU(negative_slope=0)
+arr1 = np.array([-10], np.float32)
+tmp = torch.tensor(arr1)
+tmp = tmp.to("cuda")
+print(a(tmp))

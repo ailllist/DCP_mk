@@ -131,6 +131,7 @@ def train_one_epoch(net, train_loader, opt):
         translation_ba = translation_ba.cuda()
 
         batch_size = src.size(0)
+        opt.zero_grad() #TODO 설마 이거때문??????
         num_examples += batch_size
         rotation_ab_pred, translation_ab_pred, rotation_ba_pred, translation_ba_pred = net(src, target)
 
@@ -270,7 +271,7 @@ def train(net, train_loader, test_loader):
         test_t_mse_ba = np.mean((test_translations_ba - test_translations_ba_pred) ** 2)
         test_t_rmse_ba = np.sqrt(test_t_mse_ba)
         test_t_mae_ba = np.mean(np.abs(test_translations_ba - test_translations_ba_pred))
-        with open("run_1.csv", "a") as f:
+        with open("run.csv", "a") as f:
             f.write(f"{test_loss},{test_mse_ba},{test_mse_ab},{test_mae_ab},{test_mae_ba},{test_rmse_ab},{test_rmse_ba}\n")
 
         if best_test_loss >= test_loss:
@@ -315,7 +316,7 @@ if __name__ == "__main__":
     np.random.seed(SEED)
 
     train_loader = DataLoader(ModelNet40("train"),
-                              shuffle=False, batch_size=batch_size)
+                              shuffle=True, batch_size=batch_size)
     test_loader = DataLoader(ModelNet40("test"),
                              shuffle=False, batch_size=batch_size)
 
