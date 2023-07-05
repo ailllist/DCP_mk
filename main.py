@@ -182,7 +182,7 @@ def train_one_epoch(net, train_loader, opt):
     eulers_ab = np.concatenate(eulers_ab, axis=0)
     eulers_ba = np.concatenate(eulers_ba, axis=0)
 
-    return total_loss * 1.0 / num_examples, mse_ab * 1.0 / num_examples, mae_ab + 1.0 / num_examples,\
+    return total_loss * 1.0 / num_examples, mse_ab * 1.0 / num_examples, mae_ab * 1.0 / num_examples,\
         mse_ba * 1.0 / num_examples, mae_ba * 1.0 / num_examples, rotations_ab, translations_ab,\
         rotations_ab_pred, translations_ab_pred, rotations_ba, translations_ba, rotations_ba_pred, \
         translations_ba_pred, eulers_ab, eulers_ba

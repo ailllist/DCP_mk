@@ -55,7 +55,7 @@ def get_graph_feature(x, k=20, idx=None):
     x = x.view(batch_size, num_points, 1, num_dims).repeat(1, 1, k, 1)  # 32, 1024, 20, 3을 만든다.
 
     feature = torch.cat((feature, x), dim=3).permute(0, 3, 1, 2).contiguous()  # extract edge feature
-    print(feature.shape)
+    # print(feature.shape)
     # feature + xyz를 해준다.
     return feature
 
