@@ -35,7 +35,7 @@ def get_graph_feature(x, k=20, idx=None):
     x = x.view(batch_size, -1, num_points)  # 32, 3 ,1024
 
     if idx is None:
-        idx = knn(x, k=k)
+        idx = knn(x, k=k)  # 2, 1024, 20
     device = torch.device('cuda')
 
     idx_base = torch.arange(0, batch_size, device=device).view(-1, 1, 1) * num_points
@@ -44,11 +44,10 @@ def get_graph_feature(x, k=20, idx=None):
     idx = idx + idx_base
 
     idx = idx.view(-1) # flatting
-
+    # 이 과정에서 idx 는 동일한 index를 지정할 수 도 있다. [1, 1, 2, 6, 7, 1, 2, ...]
     _, num_dims, _ = x.size()
 
     x = x.transpose(2, 1).contiguous()
-
     feature = x.view(batch_size * num_points, -1)[idx, :]
     # 32768, 3을 가지고 [655360 (len of idx), 3]의 tensor를 만든다.
 
@@ -56,7 +55,8 @@ def get_graph_feature(x, k=20, idx=None):
     x = x.view(batch_size, num_points, 1, num_dims).repeat(1, 1, k, 1)  # 32, 1024, 20, 3을 만든다.
 
     feature = torch.cat((feature, x), dim=3).permute(0, 3, 1, 2).contiguous()  # extract edge feature
-
+    print(feature.shape)
+    # feature + xyz를 해준다.
     return feature
 
 class EncoderDecoder(nn.Module):
@@ -237,19 +237,19 @@ class DGCNN(nn.Module):
 
         self.conv1 = nn.Sequential(nn.Conv2d(6, 64, kernel_size=1, bias=False),
                                    self.bn1,
-                                   nn.LeakyReLU(negative_slope=0.2))
+                                   nn.LeakyReLU(negative_slope=0))
         self.conv2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=1, bias=False),
                                    self.bn2,
-                                   nn.LeakyReLU(negative_slope=0.2))
+                                   nn.LeakyReLU(negative_slope=0))
         self.conv3 = nn.Sequential(nn.Conv2d(64, 128, kernel_size=1, bias=False),
                                    self.bn3,
-                                   nn.LeakyReLU(negative_slope=0.2))
+                                   nn.LeakyReLU(negative_slope=0))
         self.conv4 = nn.Sequential(nn.Conv2d(128, 256, kernel_size=1, bias=False),
                                    self.bn4,
-                                   nn.LeakyReLU(negative_slope=0.2))
+                                   nn.LeakyReLU(negative_slope=0))
         self.conv5 = nn.Sequential(nn.Conv2d(512, emb_dim, kernel_size=1, bias=False),
                                    self.bn5,
-                                   nn.LeakyReLU(negative_slope=0.2))
+                                   nn.LeakyReLU(negative_slope=0))
 
     def forward(self, x):
         batch_size = x.shape[0]

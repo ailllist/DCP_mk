@@ -291,13 +291,11 @@ class DGCNN(nn.Module):
     def forward(self, x):
         batch_size, num_dims, num_points = x.size()
         x = get_graph_feature(x)
-        print(x.shape)  # [10, 6, 1024, 20]
-        x = F.relu(self.bn1(self.conv1(x)))
-        x1 = x.max(dim=-1, keepdim=True)[0]
+        x = F.relu(self.bn1(self.conv1(x))) # [10, 64, 1024, 20]
 
-        print(x.shape)  # [10, 64, 1024, 20]
+        x1 = x.max(dim=-1, keepdim=True)[0]
         x = F.relu(self.bn2(self.conv2(x)))
-        print(x.shape)  # [10, 64, 1024, 20]
+
         x2 = x.max(dim=-1, keepdim=True)[0]
 
         x = F.relu(self.bn3(self.conv3(x)))

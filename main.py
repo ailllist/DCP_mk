@@ -94,7 +94,7 @@ def test_one_epoch(net, test_loader):
     eulers_ab = np.concatenate(eulers_ab, axis=0)
     eulers_ba = np.concatenate(eulers_ba, axis=0)
 
-    return total_loss * 1.0 / num_examples, mse_ab * 1.0 / num_examples, mae_ab + 1.0 / num_examples, \
+    return total_loss * 1.0 / num_examples, mse_ab * 1.0 / num_examples, mae_ab * 1.0 / num_examples, \
            mse_ba * 1.0 / num_examples, mae_ba * 1.0 / num_examples, rotations_ab, translations_ab, \
         rotations_ab_pred, translations_ab_pred, rotations_ba, translations_ba, rotations_ba_pred, \
         translations_ba_pred, eulers_ab, eulers_ba
@@ -131,6 +131,7 @@ def train_one_epoch(net, train_loader, opt):
         translation_ba = translation_ba.cuda()
 
         batch_size = src.size(0)
+        opt.zero_grad() #TODO 설마 이거때문??????
         num_examples += batch_size
         rotation_ab_pred, translation_ab_pred, rotation_ba_pred, translation_ba_pred = net(src, target)
 
@@ -270,8 +271,9 @@ def train(net, train_loader, test_loader):
         test_t_mse_ba = np.mean((test_translations_ba - test_translations_ba_pred) ** 2)
         test_t_rmse_ba = np.sqrt(test_t_mse_ba)
         test_t_mae_ba = np.mean(np.abs(test_translations_ba - test_translations_ba_pred))
-        with open("run_1.csv", "a") as f:
-            f.write(f"{test_loss},{test_mse_ba},{test_mse_ab},{test_mae_ab},{test_mae_ba},{test_rmse_ab},{test_rmse_ba}\n")
+        with open("run.csv", "a") as f:
+            f.write(f"{test_loss},{test_r_mse_ab},{test_r_rmse_ab},{test_r_mae_ab},{test_t_mse_ab},{test_t_rmse_ab},{test_t_mae_ab},\
+                    {test_r_mse_ba},{test_r_rmse_ba},{test_r_mae_ba},{test_t_mse_ba},{test_t_rmse_ba},{test_t_mae_ba}\n")
 
         if best_test_loss >= test_loss:
             best_test_loss = test_loss
@@ -315,7 +317,7 @@ if __name__ == "__main__":
     np.random.seed(SEED)
 
     train_loader = DataLoader(ModelNet40("train"),
-                              shuffle=False, batch_size=batch_size)
+                              shuffle=True, batch_size=batch_size)
     test_loader = DataLoader(ModelNet40("test"),
                              shuffle=False, batch_size=batch_size)
 
