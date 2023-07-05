@@ -272,8 +272,9 @@ def train(net, train_loader, test_loader):
         test_t_rmse_ba = np.sqrt(test_t_mse_ba)
         test_t_mae_ba = np.mean(np.abs(test_translations_ba - test_translations_ba_pred))
         with open("run.csv", "a") as f:
-            f.write(f"{test_loss},{test_r_mse_ab},{test_r_rmse_ab},{test_r_mae_ab},{test_t_mse_ab},{test_t_rmse_ab},{test_t_mae_ab},\
-                    {test_r_mse_ba},{test_r_rmse_ba},{test_r_mae_ba},{test_t_mse_ba},{test_t_rmse_ba},{test_t_mae_ba}\n")
+            f.write(f"{test_loss},{test_r_mse_ab},{test_r_mae_ab},{test_t_mse_ab},{test_t_mae_ab},\
+                    {test_r_mse_ba},{test_r_mae_ba},{test_t_mse_ba},{test_t_mae_ba},\
+                    {test_mse_ab},{test_mae_ab},{test_mse_ba},{test_mae_ba}\n")
 
         if best_test_loss >= test_loss:
             best_test_loss = test_loss
