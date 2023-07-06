@@ -1,6 +1,6 @@
 import copy
 import math
-
+import numpy as np
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -409,7 +409,10 @@ class DCP(nn.Module):
 
 
 if __name__ == "__main__":
-
+    SEED = 1234
+    torch.manual_seed(SEED)
+    torch.cuda.manual_seed_all(SEED)
+    np.random.seed(SEED)
     torch.cuda.empty_cache()
     train_loader = DataLoader(ModelNet40("train"), batch_size=2)
 
@@ -425,7 +428,17 @@ if __name__ == "__main__":
 
         r1, t1, r2, t2 = model(src, tgt)
 
-        print(r1, t1)
-        print(rotation_ab, translation_ab)
+        print("rot_ab : ", rotation_ab)
+        print("rot_ab_pred : ", r1)
+        print("rot_ba : ", rotation_ba)
+        print("rot_ba_pred : ", r2)
+
+        print("trans_ab : ", translation_ab)
+        print("trans_ab_pred : ", t1)
+        print("trans_ba : ", translation_ba)
+        print("trans_ba_pred : ", t2)
+
+        # print(rotation_ab, translation_ab)
+
         break
 
