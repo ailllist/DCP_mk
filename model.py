@@ -52,9 +52,11 @@ def get_graph_feature(x, k=20, idx=None):
     # 32768, 3을 가지고 [655360 (len of idx), 3]의 tensor를 만든다.
 
     feature = feature.view(batch_size, num_points, k, -1)
+    bar_x = torch.mean(x, dim=[0, 1, 2])
     x = x.view(batch_size, num_points, 1, num_dims).repeat(1, 1, k, 1)  # 32, 1024, 20, 3을 만든다.
 
-    feature = torch.cat((feature, x), dim=3).permute(0, 3, 1, 2).contiguous()  # extract edge feature
+    # feature = torch.cat((feature, x), dim=3).permute(0, 3, 1, 2).contiguous()  # extract edge feature
+    feature = torch.cat((feature - x, x - bar_x), dim=3).permute(0, 3, 1, 2).contiguous()  # extract edge feature
     # print(feature.shape)
     # feature + xyz를 해준다.
     return feature
