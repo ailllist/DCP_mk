@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 tgt_lines_AB = []
 tgt_lines_BA = []
 
+max_len = 86
+
 with open("DCP_origin.csv", "r") as f:
     lines = f.readlines()  # 8 -> 23 -> 39 (16)
 
@@ -19,7 +21,7 @@ with open("DCP_origin.csv", "r") as f:
         A2B_list = [j.split(": ")[1] for j in A2B.split(", ") if j[0] != "C"]
         B2A_list = [j.split(": ")[1] for j in B2A.split(", ")]
 
-        if A2B_list[0] == "100":
+        if A2B_list[0] == f"{max_len}":
             break
 
         tgt_lines_AB.append(A2B_list[1:])
@@ -27,18 +29,22 @@ with open("DCP_origin.csv", "r") as f:
 
 tgt_lines_AB = np.array(tgt_lines_AB, np.float32)
 tgt_lines_BA = np.array(tgt_lines_BA, np.float32)
-t = np.array(range(len(tgt_lines_AB)))
+t1 = np.array(range(len(tgt_lines_AB)))
 
-with open("DCP_normal.csv", "r") as f:
+with open("DCP_edge_new.csv", "r") as f:
     lines = [list(eval(i.strip("\n"))) for i in f.readlines()]
 
 arr1 = np.array(lines, np.float32)
 
-target = "mae_ba"
+t2 = np.array(range(len(arr1)))
+
+t = t1 if len(t1) < len(t2) else t2
+
+target = "rot_mse_ba"
 plt.title(f"{target}")
 plt.grid(True)
-plt.plot(t, arr1[:, 12])
-plt.plot(t, tgt_lines_BA[:, 3])
+plt.plot(t, arr1[:, 5])
+plt.plot(t, tgt_lines_BA[:, 4])
 plt.legend(["my code", "origin"])
 plt.xlabel("epochs")
 plt.ylabel(f"{target}")
