@@ -52,11 +52,11 @@ def get_graph_feature(x, k=20, idx=None):
     # 32768, 3을 가지고 [655360 (len of idx), 3]의 tensor를 만든다.
 
     feature = feature.view(batch_size, num_points, k, -1)
-    bar_x = torch.mean(x, dim=[0, 1, 2])
+    # bar_x = torch.mean(x, dim=[0, 1, 2])
     x = x.view(batch_size, num_points, 1, num_dims).repeat(1, 1, k, 1)  # 32, 1024, 20, 3을 만든다.
 
-    # feature = torch.cat((feature, x), dim=3).permute(0, 3, 1, 2).contiguous()  # extract edge feature
-    feature = torch.cat((feature - x, x - bar_x), dim=3).permute(0, 3, 1, 2).contiguous()  # extract edge feature
+    feature = torch.cat((feature, x), dim=3).permute(0, 3, 1, 2).contiguous()  # extract edge feature
+    # feature = torch.cat((feature - x, x - bar_x), dim=3).permute(0, 3, 1, 2).contiguous()  # extract edge feature
     # print(feature.shape)
     # feature + xyz를 해준다.
     return feature
@@ -390,8 +390,16 @@ class DCP(nn.Module):
 
     def forward(self, *input):
         src = input[0]
-        # print("src_inp : ", src[0][0][100])
         tgt = input[1]
+
+        batch_size = src.shape[0]
+
+        bar_src = torch.mean(src, dim=[1, 2]).view(batch_size, 1, 1)
+        bar_tgt = torch.mean(tgt, dim=[1, 2]).view(batch_size, 1, 1)
+
+        src = src - bar_src
+        tgt = tgt - bar_tgt
+
         src_emb = self.emb_net(src)
         tgt_emb = self.emb_net(tgt)
         # print("src_emb : ", src_emb[0][0][100])
