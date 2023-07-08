@@ -397,11 +397,11 @@ class DCP(nn.Module):
         bar_src = torch.mean(src, dim=[1, 2]).view(batch_size, 1, 1)
         bar_tgt = torch.mean(tgt, dim=[1, 2]).view(batch_size, 1, 1)
 
-        # src_emb = self.emb_net(src - bar_src)
-        # tgt_emb = self.emb_net(tgt - bar_tgt)
+        src_emb = self.emb_net(src - bar_src)
+        tgt_emb = self.emb_net(tgt - bar_tgt)
 
-        src_emb = self.emb_net(src)
-        tgt_emb = self.emb_net(tgt)
+        # src_emb = self.emb_net(src)
+        # tgt_emb = self.emb_net(tgt)
         # print("src_emb : ", src_emb[0][0][100])
 
         src_emb_p, tgt_emb_p = self.pointer(src_emb, tgt_emb)
