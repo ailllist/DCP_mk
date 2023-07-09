@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 tgt_lines_AB = []
 tgt_lines_BA = []
 
-max_len = 86
+max_len = 100
 
 with open("DCP_origin.csv", "r") as f:
     lines = f.readlines()  # 8 -> 23 -> 39 (16)
@@ -31,7 +31,7 @@ tgt_lines_AB = np.array(tgt_lines_AB, np.float32)
 tgt_lines_BA = np.array(tgt_lines_BA, np.float32)
 t1 = np.array(range(len(tgt_lines_AB)))
 
-with open("DCP_edge_new.csv", "r") as f:
+with open("DCP_local.csv", "r") as f:
     lines = [list(eval(i.strip("\n"))) for i in f.readlines()]
 
 arr1 = np.array(lines, np.float32)
@@ -40,11 +40,11 @@ t2 = np.array(range(len(arr1)))
 
 t = t1 if len(t1) < len(t2) else t2
 
-target = "rot_mse_ba"
+target = "loss"
 plt.title(f"{target}")
 plt.grid(True)
-plt.plot(t, arr1[:, 5])
-plt.plot(t, tgt_lines_BA[:, 4])
+plt.plot(t, arr1[:, 0])
+plt.plot(t, tgt_lines_BA[:, 0])
 plt.legend(["my code", "origin"])
 plt.xlabel("epochs")
 plt.ylabel(f"{target}")

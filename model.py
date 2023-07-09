@@ -353,9 +353,17 @@ class SVDHead(nn.Module):
         d_k = src_embedding.size(1)  # 512
         scores = torch.matmul(src_embedding.transpose(2, 1).contiguous(), tgt_embedding) / math.sqrt(d_k)  # 2, 1024, 1024
         # scaled-dot attention, m(x_i, Y)
-        scores = torch.softmax(scores, dim=2)  #
+        # scores = torch.softmax(scores, dim=2)  # 2, 1024, 1024
+        scores = torch.max(scores, dim=2, keepdim=True)[1]  # 2, 1024, 1
+        scores = scores.repeat(1, 1, 3)
 
-        src_corr = torch.matmul(tgt, scores.transpose(2, 1).contiguous())  # att score를 토대로 tgt에서 가장 유사도가 높은 point 추출.
+        # src_corr = torch.matmul(tgt, scores.transpose(2, 1).contiguous())  # att score를 토대로 tgt에서 가장 유사도가 높은 point 추출.
+        tgt = tgt.transpose(2, 1).contiguous()
+
+        src_corr = torch.gather(tgt, dim=1, index=scores)
+
+        src_corr = src_corr.transpose(2, 1)
+
         # Attention. Q : src_embedding, K : tgt_embedding, V : tgt
         src_centered = src - src.mean(dim=2, keepdim=True)  # local coordinate 로 변경
         src_corr_centered = src_corr - src_corr.mean(dim=2, keepdim=True)  # soft_pointer (tgt_point와 유사)의 local
@@ -397,11 +405,11 @@ class DCP(nn.Module):
         bar_src = torch.mean(src, dim=[1, 2]).view(batch_size, 1, 1)
         bar_tgt = torch.mean(tgt, dim=[1, 2]).view(batch_size, 1, 1)
 
-        src_emb = self.emb_net(src - bar_src)
-        tgt_emb = self.emb_net(tgt - bar_tgt)
+        # src_emb = self.emb_net(src - bar_src)
+        # tgt_emb = self.emb_net(tgt - bar_tgt)
 
-        # src_emb = self.emb_net(src)
-        # tgt_emb = self.emb_net(tgt)
+        src_emb = self.emb_net(src)
+        tgt_emb = self.emb_net(tgt)
         # print("src_emb : ", src_emb[0][0][100])
 
         src_emb_p, tgt_emb_p = self.pointer(src_emb, tgt_emb)
