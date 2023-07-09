@@ -8,3 +8,5 @@ __pycache__/
 *.csv
 
 *.t7
+
+*.txt

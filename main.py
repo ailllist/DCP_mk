@@ -157,8 +157,9 @@ def train_one_epoch(net, train_loader, opt):
         identity = torch.eye(3).cuda().unsqueeze(0).repeat(batch_size, 1, 1)
         loss = F.mse_loss(torch.matmul(rotation_ab_pred.transpose(2, 1), rotation_ab), identity) \
                 + F.mse_loss(translation_ab_pred, translation_ab)
-        # Rotation matrix는 Orthogonal하기 때문에 A^TA = I를 만족할 때까지 계속 학습...
-
+        # Rotation matrix는 Orthogonal하기 때문에 A^TA = I를 만족할 때까지 계속 학습...'
+        # loss.requires_grad_(True)
+        # print("loss : ", loss)
         loss.backward()
         opt.step()
         total_loss += loss.item() * batch_size
