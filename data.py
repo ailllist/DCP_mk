@@ -74,7 +74,7 @@ class ModelNet40(Dataset):
 
         return pointcloud1.astype("float32"), pointcloud2.astype("float32"), R_ab.astype("float32"), \
                 translation_ab.astype("float32"), R_ba.astype("float32"), translation_ba.astype("float32"), \
-                euler_ba.astype("float32"), euler_ba.astype("float32")
+                euler_ab.astype("float32"), euler_ba.astype("float32")
 
     def __len__(self):
         return self.data.shape[0]  # object의 갯수

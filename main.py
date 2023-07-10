@@ -218,7 +218,7 @@ def train(net, train_loader, test_loader):
     best_test_r_mae_ba = np.inf
     best_test_t_mse_ba = np.inf
     best_test_t_rmse_ba = np.inf
-    best_test_t_mae_ba = np.inf\
+    best_test_t_mae_ba = np.inf
 
     for epoch in range(TRAIN_EPOCHS):
         print(epoch)
@@ -273,12 +273,6 @@ def train(net, train_loader, test_loader):
         test_t_mse_ba = np.mean((test_translations_ba - test_translations_ba_pred) ** 2)
         test_t_rmse_ba = np.sqrt(test_t_mse_ba)
         test_t_mae_ba = np.mean(np.abs(test_translations_ba - test_translations_ba_pred))
-        print(test_rotations_ab_pred_euler)
-        print(test_rotations_ab_pred)
-        print(test_rotations_ba_pred_euler)
-        print(test_rotations_ba_pred)
-        print(test_eulers_ab)
-        breakpoint()
 
         with open("run.csv", "a") as f:
             f.write(f"{test_loss},{test_r_mse_ab},{test_r_mae_ab},{test_t_mse_ab},{test_t_mae_ab},"
