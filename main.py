@@ -258,6 +258,7 @@ def train(net, train_loader, test_loader):
         train_t_mae_ba = np.mean(np.abs(train_translations_ba - train_translations_ba_pred))
 
         test_rotations_ab_pred_euler = npmat2euler(test_rotations_ab_pred)
+
         test_r_mse_ab = np.mean((test_rotations_ab_pred_euler - np.degrees(test_eulers_ab)) ** 2)
         test_r_rmse_ab = np.sqrt(test_r_mse_ab)
         test_r_mae_ab = np.mean(np.abs(test_rotations_ab_pred_euler - np.degrees(test_eulers_ab)))
@@ -272,6 +273,13 @@ def train(net, train_loader, test_loader):
         test_t_mse_ba = np.mean((test_translations_ba - test_translations_ba_pred) ** 2)
         test_t_rmse_ba = np.sqrt(test_t_mse_ba)
         test_t_mae_ba = np.mean(np.abs(test_translations_ba - test_translations_ba_pred))
+        print(test_rotations_ab_pred_euler)
+        print(test_rotations_ab_pred)
+        print(test_rotations_ba_pred_euler)
+        print(test_rotations_ba_pred)
+        print(test_eulers_ab)
+        breakpoint()
+
         with open("run.csv", "a") as f:
             f.write(f"{test_loss},{test_r_mse_ab},{test_r_mae_ab},{test_t_mse_ab},{test_t_mae_ab},"
                     f"{test_r_mse_ba},{test_r_mae_ba},{test_t_mse_ba},{test_t_mae_ba},"
