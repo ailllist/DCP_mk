@@ -40,12 +40,12 @@ t2 = np.array(range(len(arr1)))
 
 t = t1 if len(t1) < len(t2) else t2
 
-target = "trans_mse_ab"
+target = "mse_ab"
 plt.title(f"{target}")
 plt.grid(True)
-plt.plot(t, arr1[:, 2])
-# plt.plot(t, tgt_lines_BA[:, 0])
-# plt.legend(["my code", "origin"])
+plt.plot(t, arr1[:, 10])
+plt.plot(t, tgt_lines_AB[:, 7])
+plt.legend(["my code", "origin"])
 plt.xlabel("epochs")
 plt.ylabel(f"{target}")
 

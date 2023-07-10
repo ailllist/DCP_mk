@@ -8,10 +8,10 @@ arr1 = np.array(lines, np.float32)
 length = arr1.shape[0]
 t = np.array(range(length))
 
-target = ""
+target = "mae_ab"
 plt.title(f"{target}")
 plt.grid(True)
-plt.plot(t, arr1[:, 12])
+plt.plot(t, arr1[:, 10])
 plt.xlabel("epochs")
 plt.ylabel(f"{target}")
 plt.show()

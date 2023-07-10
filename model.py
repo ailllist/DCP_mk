@@ -356,13 +356,10 @@ class SVDHead(nn.Module):
         d_k = src_embedding.size(1)  # 512
         scores = torch.matmul(src_embedding.transpose(2, 1).contiguous(), tgt_embedding) / math.sqrt(d_k)  # 2, 1024, 1024
         # scaled-dot attention, m(x_i, Y)
-        # -----------------
-        scores = torch.softmax(scores ** 2, dim=2)  # 2, 1024, 1024
-
+        scores = torch.softmax(scores, dim=2)  # 2, 1024, 1024
         src_corr = torch.matmul(tgt, scores.transpose(2, 1).contiguous())  # att score를 토대로 tgt에서 가장 유사도가 높은 point 추출.
-        #
+        
         # -----------------------
-
         # scores = torch.max(scores, dim=2, keepdim=True)[0]  # 2, 1024, 3
         # # scores = scores.squeeze().squeeze()
         # # scores = scores.repeat(1, 1, 3)
