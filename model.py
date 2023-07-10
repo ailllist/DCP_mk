@@ -39,6 +39,7 @@ def get_graph_feature(x, k=20, idx=None):
     device = torch.device('cuda')
 
     idx_base = torch.arange(0, batch_size, device=device).view(-1, 1, 1) * num_points
+
     # batch unpacking
     idx = idx.to(device)
     idx = idx + idx_base
@@ -47,7 +48,8 @@ def get_graph_feature(x, k=20, idx=None):
     # 이 과정에서 idx 는 동일한 index를 지정할 수 도 있다. [1, 1, 2, 6, 7, 1, 2, ...]
     _, num_dims, _ = x.size()
 
-    x = x.transpose(2, 1).contiguous()
+    x = x.transpose(2, 1).contiguous()  # 2, 1024, 3
+
     feature = x.view(batch_size * num_points, -1)[idx, :]
     # 32768, 3을 가지고 [655360 (len of idx), 3]의 tensor를 만든다.
 
@@ -349,22 +351,27 @@ class SVDHead(nn.Module):
         src = input[2]
         tgt = input[3]
         batch_size = src.size(0)
+        num_points = src.size(2)
 
         d_k = src_embedding.size(1)  # 512
         scores = torch.matmul(src_embedding.transpose(2, 1).contiguous(), tgt_embedding) / math.sqrt(d_k)  # 2, 1024, 1024
         # scaled-dot attention, m(x_i, Y)
-        scores = torch.softmax(scores, dim=2)  # 2, 1024, 1024
-        # print(scores)
-        # scores = torch.max(scores, dim=2, keepdim=True)[1]  # 2, 1024, 3
-        # scores = scores.repeat(1, 1, 3)
+        # -----------------
+        scores = torch.softmax(scores ** 2, dim=2)  # 2, 1024, 1024
 
         src_corr = torch.matmul(tgt, scores.transpose(2, 1).contiguous())  # att score를 토대로 tgt에서 가장 유사도가 높은 point 추출.
-        # tgt = tgt.transpose(2, 1).contiguous()
-        # src_corr = torch.gather(tgt, dim=1, index=scores)
-        # print(src_corr)
-        # src_corr.requires_grad_(True)
-        # src_corr = src_corr.transpose(2, 1)
-        # breakpoint()
+        #
+        # -----------------------
+
+        # scores = torch.max(scores, dim=2, keepdim=True)[0]  # 2, 1024, 3
+        # # scores = scores.squeeze().squeeze()
+        # # scores = scores.repeat(1, 1, 3)
+        # #
+        # # tgt = tgt.transpose(2, 1).contiguous()
+        # #
+        # # src_corr = torch.gather(tgt, dim=1, index=scores)
+        # # src_corr = src_corr.transpose(2, 1)
+
         # Attention. Q : src_embedding, K : tgt_embedding, V : tgt
         src_centered = src - src.mean(dim=2, keepdim=True)  # local coordinate 로 변경
         src_corr_centered = src_corr - src_corr.mean(dim=2, keepdim=True)  # soft_pointer (tgt_point와 유사)의 local
@@ -458,4 +465,5 @@ if __name__ == "__main__":
         # print(rotation_ab, translation_ab)
 
         break
+
 
